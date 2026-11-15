@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floppy Computación - Sistema Contable y Stock</title>
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #2563eb;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 50px; }
+
+    #login-screen {
+      position: fixed; inset: 0; background: var(--primary);
+      display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px;
+    }
+    .login-box {
+      background: white; padding: 30px; border-radius: 16px; width: 100%; max-width: 390px;
+      text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .login-box h2 { color: var(--primary); margin-bottom: 6px; }
+    .login-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
+    .login-box input {
+      width: 100%; padding: 12px; font-size: 1.3rem; text-align: center; letter-spacing: 6px;
+      border: 2px solid var(--border); border-radius: 10px; margin-bottom: 12px;
+    }
+
+    header {
+      background: var(--primary); color: white; padding: 16px 22px;
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    header h1 { font-size: 1.2rem; }
+    .badge-sync { background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; }
+
+    .container { max-width: 1220px; margin: 18px auto; padding: 0 14px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .tab-btn {
+      padding: 10px 14px; border: 1px solid var(--border); background: white; border-radius: 10px;
+      cursor: pointer; font-weight: 600; color: var(--muted); font-size: 0.88rem;
+    }
+    .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-bottom: 18px; }
+    .card {
+      background: var(--card); border-radius: 14px; padding: 18px;
+      border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.04); margin-bottom: 16px;
+    }
+    .card h3 { font-size: 1rem; color: var(--primary); margin-bottom: 12px; }
+    .kpi-val { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 0.78rem; font-weight: 700; color: var(--muted); }
+    input, select { padding: 9px 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: white; width: 100%; }
+    button.btn-primary { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    button.btn-secondary { background: #e2e8f0; color: var(--text); border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    th, td { padding: 9px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { background: #f8fafc; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .badge { padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700; }
+    .bg-ok { background: #dcfce7; color: #166534; }
+    .bg-low { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <h2>Floppy Computación</h2>
+    <p>Contabilidad por Partida Doble • Stock • Ctas. Ctes.</p>
+    <input type="password" id="pin-input" maxlength="8" placeholder="••••" onkeyup="if(event.key==='Enter') conectar()">
+    <button class="btn-primary" style="width:100%" onclick="conectar()">Ingresar al Sistema Contable</button>
+  </div>
+</div>
+
+<header>
+  <div>
+    <h1>Floppy Computación — Contabilidad y Stock</h1>
+    <div style="font-size:0.78rem; opacity:0.8;">Coronel Suárez 1391 • Partida Doble Automatizada en Google Sheets</div>
+  </div>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <span class="badge-sync" id="sync-status">Listo</span>
+    <button class="btn-secondary" onclick="cargarDatos(false)">Sincronizar</button>
+    <button class="btn-secondary" onclick="cerrarSesion()">Salir</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="verTab('estados', this)">1. Ganancias y Pérdidas / Balance</button>
+    <button class="tab-btn" onclick="verTab('operaciones', this)">2. Compras, Ventas y Taller</button>
+    <button class="tab-btn" onclick="verTab('stock', this)">3. Stock de Mercaderías</button>
+    <button class="tab-btn" onclick="verTab('ctasctes', this)">4. Deudores y Proveedores</button>
+    <button class="tab-btn" onclick="verTab('diario', this)">5. Libro Diario (Asientos)</button>
+  </div>
+
+  <!-- TAB 1: ESTADOS CONTABLES -->
+  <div id="tab-estados" class="section active">
+    <div class="grid-cards" id="kpis-contables"></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Cuadro de Ganancias y Pérdidas (Estado de Resultados)</h3>
+        <table>
+          <tbody id="tabla-resultados"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Estado de Situación Patrimonial (Balance General)</h3>
+        <table>
+          <thead><tr><th>Código</th><th>Cuenta Patrimonial</th><th class="num">Saldo Actual</th></tr></thead>
+          <tbody id="tabla-balance"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: OPERACIONES COMERCIALES -->
+  <div id="tab-operaciones" class="section">
+    <div class="grid-2">
+      <!-- VENTA MERCADERÍA -->
+      <div class="card">
+        <h3>Registrar Venta de Mercadería (Asiento + CMV + Baja Stock)</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha</label><input type="date" id="v-fecha"></div>
+          <div class="form-group"><label>Producto en Stock</label><select id="v-prod" onchange="completarPrecioVenta()"></select></div>
+          <div class="form-group"><label>Cantidad</label><input type="number" id="v-cant" value="1" min="1"></div>
+          <div class="form-group"><label>Precio Unitario Venta ($)</label><input type="number" id="v-precio"></div>
+          <div class="form-group">
+            <label>Condición de Venta</label>
+            <select id="v-cond" onchange="toggleCobroVenta()">
+              <option value="Contado">Contado</option>
+              <option value="Cuenta Corriente">Cuenta Corriente (Deudor)</option>
+            </select>
+          </div>
+          <div class="form-group" id="grp-v-medio">
+            <label>Medio de Cobro</label>
+            <select id="v-medio">
+              <option value="1.1.01|Caja Efectivo">Caja Efectivo</option>
+              <option value="1.1.02|Banco Credicoop">Banco Credicoop</option>
+              <option value="1.1.03|Mercado Pago">Mercado Pago</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Cliente</label><input type="text" id="v-cliente" list="dl-clientes" placeholder="Consumidor Final o Nombre"></div>
+        </div>
+        <button class="btn-primary" onclick="registrarVenta()">Registrar Venta y Descontar Stock</button>
+      </div>
+
+      <!-- COMPRA MERCADERÍA -->
+      <div class="card">
+        <h3>Registrar Compra de Mercadería (Alta Stock + Asiento)</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha</label><input type="date" id="c-fecha"></div>
+          <div class="form-group"><label>Código Artículo</label><input type="text" id="c-cod" placeholder="Ej: SSD-480"></div>
+          <div class="form-group"><label>Descripción Artículo</label><input type="text" id="c-desc" placeholder="Ej: Disco SSD Kingston 480GB"></div>
+          <div class="form-group"><label>Cantidad</label><input type="number" id="c-cant" value="1" min="1"></div>
+          <div class="form-group"><label>Costo Unitario ($)</label><input type="number" id="c-costo"></div>
+          <div class="form-group"><label>Precio Venta Sugerido ($)</label><input type="number" id="c-pventa"></div>
+          <div class="form-group">
+            <label>Condición de Compra</label>
+            <select id="c-cond" onchange="togglePagoCompra()">
+              <option value="Contado">Contado</option>
+              <option value="Cuenta Corriente">Cuenta Corriente (Proveedor)</option>
+            </select>
+          </div>
+          <div class="form-group" id="grp-c-medio">
+            <label>Medio de Pago</label>
+            <select id="c-medio">
+              <option value="1.1.02|Banco Credicoop">Banco Credicoop</option>
+              <option value="1.1.01|Caja Efectivo">Caja Efectivo</option>
+              <option value="1.1.03|Mercado Pago">Mercado Pago</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Proveedor</label><input type="text" id="c-prov" list="dl-proveedores" placeholder="Nombre Proveedor"></div>
+        </div>
+        <button class="btn-primary" onclick="registrarCompra()">Registrar Compra e Ingresar Stock</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- SERVICIOS TÉCNICOS -->
+      <div class="card">
+        <h3>Servicio Técnico / Reparación (Mano de Obra)</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha</label><input type="date" id="s-fecha"></div>
+          <div class="form-group"><label>Trabajo Realizado</label><input type="text" id="s-det" placeholder="Ej: Formateo y cambio pasta térmica"></div>
+          <div class="form-group"><label>Cliente</label><input type="text" id="s-cli" list="dl-clientes" placeholder="Nombre del cliente"></div>
+          <div class="form-group"><label>Monto ($)</label><input type="number" id="s-monto"></div>
+          <div class="form-group">
+            <label>Condición</label>
+            <select id="s-cond">
+              <option value="Contado">Contado</option>
+              <option value="Cuenta Corriente">Cuenta Corriente</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Medio de Cobro</label>
+            <select id="s-medio">
+              <option value="1.1.01|Caja Efectivo">Caja Efectivo</option>
+              <option value="1.1.03|Mercado Pago">Mercado Pago</option>
+              <option value="1.1.02|Banco Credicoop">Banco Credicoop</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="registrarServicio()">Registrar Servicio Técnico</button>
+      </div>
+
+      <!-- APORTE DE CAPITAL / RETIRO / GASTO -->
+      <div class="card">
+        <h3>Capital Inicial, Gastos Taller o Retiro Personal (Enlace App Gastos)</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha</label><input type="date" id="g-fecha"></div>
+          <div class="form-group">
+            <label>Tipo de Movimiento</label>
+            <select id="g-tipo">
+              <option value="Gasto">Gasto Operativo Taller (Luz, Alquiler, Insumos)</option>
+              <option value="Retiro">Retiro de Utilidades (Para App Gastos Personales)</option>
+              <option value="Aporte">Aporte de Capital Inicial / Propio</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Concepto</label><input type="text" id="g-det" placeholder="Ej: Retiro ganancia semanal"></div>
+          <div class="form-group"><label>Monto ($)</label><input type="number" id="g-monto"></div>
+          <div class="form-group">
+            <label>Cuenta (Caja / Banco)</label>
+            <select id="g-medio">
+              <option value="1.1.01|Caja Efectivo">Caja Efectivo</option>
+              <option value="1.1.02|Banco Credicoop">Banco Credicoop</option>
+              <option value="1.1.03|Mercado Pago">Mercado Pago</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="registrarGastoRetiroCapital()">Registrar Asiento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: STOCK -->
+  <div id="tab-stock" class="section">
+    <div class="card">
+      <h3>Inventario Permanente de Mercaderías (Bienes de Cambio)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Código</th><th>Descripción</th><th>Categoría</th><th class="num">Costo Unit.</th><th class="num">Precio Venta</th><th class="num">Stock</th><th class="num">Valuación Costo</th></tr></thead>
+          <tbody id="tabla-stock"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: DEUDORES Y PROVEEDORES -->
+  <div id="tab-ctasctes" class="section">
+    <div class="grid-2">
+      <div class="card">
+        <h3>Deudores por Ventas (Clientes en Cuenta Corriente)</h3>
+        <div class="form-grid" style="margin-bottom:12px;">
+          <div class="form-group"><label>Cliente</label><select id="cob-cliente"></select></div>
+          <div class="form-group"><label>Importe Cobrado ($)</label><input type="number" id="cob-monto"></div>
+          <div class="form-group">
+            <label>Ingresa en</label>
+            <select id="cob-medio">
+              <option value="1.1.01|Caja Efectivo">Caja Efectivo</option>
+              <option value="1.1.02|Banco Credicoop">Banco Credicoop</option>
+              <option value="1.1.03|Mercado Pago">Mercado Pago</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" style="margin-bottom:14px;" onclick="registrarCobroCliente()">Registrar Cobro a Cliente</button>
+        <table>
+          <thead><tr><th>Cliente</th><th class="num">Saldo Deudor</th></tr></thead>
+          <tbody id="tabla-clientes"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Proveedores (Cuentas a Pagar)</h3>
+        <div class="form-grid" style="margin-bottom:12px;">
+          <div class="form-group"><label>Proveedor</label><select id="pag-prov"></select></div>
+          <div class="form-group"><label>Importe Pagado ($)</label><input type="number" id="pag-monto"></div>
+          <div class="form-group">
+            <label>Sale de</label>
+            <select id="pag-medio">
+              <option value="1.1.02|Banco Credicoop">Banco Credicoop</option>
+              <option value="1.1.01|Caja Efectivo">Caja Efectivo</option>
+              <option value="1.1.03|Mercado Pago">Mercado Pago</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" style="margin-bottom:14px;" onclick="registrarPagoProveedor()">Registrar Pago a Proveedor</button>
+        <table>
+          <thead><tr><th>Proveedor</th><th class="num">Saldo a Pagar</th></tr></thead>
+          <tbody id="tabla-proveedores"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: LIBRO DIARIO -->
+  <div id="tab-diario" class="section">
+    <div class="card">
+      <h3>Libro Diario General (Asientos por Partida Doble)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Asiento</th><th>Fecha</th><th>Código</th><th>Cuenta</th><th class="num">Debe</th><th class="num">Haber</th><th>Concepto</th></tr></thead>
+          <tbody id="tabla-diario"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<datalist id="dl-clientes"></datalist>
+<datalist id="dl-proveedores"></datalist>
+
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycby181gcM3YBMqH4tI0wG-PfX5gABRjFL8XbBo07AwB0cgXS67byShKfMIrW1p30UpLtJQ/exec";
+  let PIN = localStorage.getItem("floppy_contab_pin") || "";
+  let DATA = { plan: [], asientos: [], stock: [], clientes: [], proveedores: [] };
+
+  const hoy = new Date().toISOString().split("T")[0];
+  ["v-fecha", "c-fecha", "s-fecha", "g-fecha"].forEach(id => document.getElementById(id).value = hoy);
+
+  if (PIN) {
+    document.getElementById("pin-input").value = PIN;
+    const cache = localStorage.getItem("floppy_contab_cache");
+    if (cache) {
+      DATA = JSON.parse(cache);
+      document.getElementById("login-screen").style.display = "none";
+      renderizar();
+    }
+    cargarDatos(true);
+  }
+
+  function conectar() {
+    const p = document.getElementById("pin-input").value.trim();
+    if (!p) return alert("Ingresá tu PIN");
+    PIN = p;
+    cargarDatos(false);
+  }
+
+  function cerrarSesion() {
+    localStorage.removeItem("floppy_contab_pin");
+    location.reload();
+  }
+
+  function verTab(id, btn) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById("tab-" + id).classList.add("active");
+    btn.classList.add("active");
+  }
+
+  function fmt(n) {
+    return "$" + Number(n || 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function api(params) {
+    return new Promise((resolve, reject) => {
+      const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 9999);
+      params.pin = PIN;
+      params.callback = cb;
+      const sc = document.createElement("script");
+      sc.src = `${API_URL}?${new URLSearchParams(params).toString()}`;
+      window[cb] = (res) => { delete window[cb]; sc.remove(); resolve(res); };
+      sc.onerror = () => { delete window[cb]; sc.remove(); reject(new Error("Error de conexión")); };
+      document.body.appendChild(sc);
+    });
+  }
+
+  async function cargarDatos(silencioso) {
+    document.getElementById("sync-status").textContent = "Sincronizando...";
+    try {
+      const res = await api({ accion: "leer" });
+      if (res.status === "ok") {
+        localStorage.setItem("floppy_contab_pin", PIN);
+        DATA = res;
+        localStorage.setItem("floppy_contab_cache", JSON.stringify(DATA));
+        document.getElementById("login-screen").style.display = "none";
+        renderizar();
+        document.getElementById("sync-status").textContent = "Sincronizado";
+      } else {
+        if (!silencioso) alert("Error: " + res.message);
+      }
+    } catch (e) {
+      if (!silencioso) alert("No se pudo conectar con Google Apps Script.");
+    }
+  }
+
+  function toggleCobroVenta() {
+    document.getElementById("grp-v-medio").style.display = document.getElementById("v-cond").value === "Contado" ? "flex" : "none";
+  }
+  function togglePagoCompra() {
+    document.getElementById("grp-c-medio").style.display = document.getElementById("c-cond").value === "Contado" ? "flex" : "none";
+  }
+
+  function completarPrecioVenta() {
+    const cod = document.getElementById("v-prod").value;
+    const item = DATA.stock.find(s => s.Codigo === cod);
+    if (item) document.getElementById("v-precio").value = item.Precio_Venta || 0;
+  }
+
+  function renderizar() {
+    const saldos = {};
+    DATA.plan.forEach(c => { saldos[c.Codigo] = { ...c, debe: 0, haber: 0, saldo: 0 }; });
+    DATA.asientos.forEach(a => {
+      if (!saldos[a.Codigo]) saldos[a.Codigo] = { Codigo: a.Codigo, Cuenta: a.Cuenta, Rubro: "Activo", Naturaleza: "Deudora", debe: 0, haber: 0, saldo: 0 };
+      saldos[a.Codigo].debe += Number(a.Debe || 0);
+      saldos[a.Codigo].haber += Number(a.Haber || 0);
+    });
+
+    let totalActivo = 0, totalPasivo = 0, totalPN = 0;
+    let ventas = 0, servicios = 0, cmv = 0, gastosOp = 0;
+
+    Object.values(saldos).forEach(c => {
+      c.saldo = c.Naturaleza === "Deudora" ? (c.debe - c.haber) : (c.haber - c.debe);
+      if (c.Rubro === "Activo") totalActivo += c.saldo;
+      if (c.Rubro === "Pasivo") totalPasivo += c.saldo;
+      if (c.Rubro === "Patrimonio Neto") totalPN += (c.haber - c.debe);
+      if (c.Codigo === "4.1.01") ventas += c.saldo;
+      if (c.Codigo === "4.1.02") servicios += c.saldo;
+      if (c.Codigo === "5.1.01") cmv += c.saldo;
+      if (c.Codigo === "5.1.02") gastosOp += c.saldo;
+    });
+
+    const utilidadBruta = (ventas + servicios) - cmv;
+    const resultadoNeto = utilidadBruta - gastosOp;
+
+    document.getElementById("kpis-contables").innerHTML = `
+      <div class="card"><label>ACTIVO TOTAL</label><div class="kpi-val">${fmt(totalActivo)}</div></div>
+      <div class="card"><label>PASIVO TOTAL (DEUDAS)</label><div class="kpi-val" style="color:var(--danger)">${fmt(totalPasivo)}</div></div>
+      <div class="card"><label>PATRIMONIO + RESULTADO</label><div class="kpi-val">${fmt(totalPN + resultadoNeto)}</div></div>
+      <div class="card"><label>GANANCIA NETA ACUMULADA</label><div class="kpi-val" style="color:${resultadoNeto >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmt(resultadoNeto)}</div></div>
+    `;
+
+    document.getElementById("tabla-resultados").innerHTML = `
+      <tr><td>(+) Ventas de Mercaderías</td><td class="num"><b>${fmt(ventas)}</b></td></tr>
+      <tr><td>(+) Ingresos por Servicios Técnicos</td><td class="num"><b>${fmt(servicios)}</b></td></tr>
+      <tr><td>(-) Costo de Mercadería Vendida (CMV)</td><td class="num" style="color:var(--danger)">-${fmt(cmv)}</td></tr>
+      <tr style="background:#f8fafc;"><td><b>(=) UTILIDAD BRUTA</b></td><td class="num"><b>${fmt(utilidadBruta)}</b></td></tr>
+      <tr><td>(-) Gastos Operativos y Servicios Taller</td><td class="num" style="color:var(--danger)">-${fmt(gastosOp)}</td></tr>
+      <tr style="background:#eff6ff;"><td><b>(=) RESULTADO NETO DEL EJERCICIO</b></td><td class="num"><b style="color:${resultadoNeto >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmt(resultadoNeto)}</b></td></tr>
+    `;
+
+    document.getElementById("tabla-balance").innerHTML = Object.values(saldos)
+      .filter(c => ["Activo", "Pasivo", "Patrimonio Neto"].includes(c.Rubro))
+      .map(c => `<tr><td>${c.Codigo}</td><td>${c.Cuenta} <span style="color:var(--muted);font-size:0.75rem;">(${c.Rubro})</span></td><td class="num"><b>${fmt(c.saldo)}</b></td></tr>`)
+      .join("");
+
+    document.getElementById("tabla-stock").innerHTML = DATA.stock.map(s => `
+      <tr>
+        <td><b>${s.Codigo}</b></td>
+        <td>${s.Descripcion}</td>
+        <td>${s.Categoria}</td>
+        <td class="num">${fmt(s.Costo_Unitario)}</td>
+        <td class="num">${fmt(s.Precio_Venta)}</td>
+        <td class="num"><span class="badge ${Number(s.Stock_Actual) <= Number(s.Stock_Minimo) ? 'bg-low' : 'bg-ok'}">${s.Stock_Actual}</span></td>
+        <td class="num"><b>${fmt(Number(s.Costo_Unitario) * Number(s.Stock_Actual))}</b></td>
+      </tr>
+    `).join("") || `<tr><td colspan="7" style="text-align:center;color:var(--muted);">Sin mercaderías cargadas aún</td></tr>`;
+
+    document.getElementById("v-prod").innerHTML = DATA.stock.map(s => `<option value="${s.Codigo}">${s.Codigo} - ${s.Descripcion} (Stock: ${s.Stock_Actual})</option>`).join("");
+    completarPrecioVenta();
+
+    document.getElementById("tabla-clientes").innerHTML = DATA.clientes.map(c => `<tr><td>${c.Nombre}</td><td class="num"><b>${fmt(c.Saldo_Deudor)}</b></td></tr>`).join("");
+    document.getElementById("cob-cliente").innerHTML = DATA.clientes.filter(c => Number(c.Saldo_Deudor) > 0).map(c => `<option value="${c.Nombre}">${c.Nombre} (Debe ${fmt(c.Saldo_Deudor)})</option>`).join("");
+    document.getElementById("dl-clientes").innerHTML = DATA.clientes.map(c => `<option value="${c.Nombre}">`).join("");
+
+    document.getElementById("tabla-proveedores").innerHTML = DATA.proveedores.map(p => `<tr><td>${p.Razon_Social}</td><td class="num"><b>${fmt(p.Saldo_Acreedor)}</b></td></tr>`).join("");
+    document.getElementById("pag-prov").innerHTML = DATA.proveedores.filter(p => Number(p.Saldo_Acreedor) > 0).map(p => `<option value="${p.Razon_Social}">${p.Razon_Social} (Deuda ${fmt(p.Saldo_Acreedor)})</option>`).join("");
+    document.getElementById("dl-proveedores").innerHTML = DATA.proveedores.map(p => `<option value="${p.Razon_Social}">`).join("");
+
+    document.getElementById("tabla-diario").innerHTML = DATA.asientos.slice().reverse().map(a => `
+      <tr>
+        <td style="font-size:0.75rem;color:var(--muted);">${a.ID_Asiento}</td>
+        <td>${a.Fecha}</td>
+        <td>${a.Codigo}</td>
+        <td><b>${a.Cuenta}</b></td>
+        <td class="num">${Number(a.Debe) > 0 ? fmt(a.Debe) : '-'}</td>
+        <td class="num">${Number(a.Haber) > 0 ? fmt(a.Haber) : '-'}</td>
+        <td>${a.Concepto}</td>
+      </tr>
+    `).join("");
+  }
+
+  async function ejecutarAccion(params) {
+    document.getElementById("sync-status").textContent = "Registrando asiento...";
+    const res = await api(params);
+    if (res.status === "ok") {
+      DATA = res;
+      localStorage.setItem("floppy_contab_cache", JSON.stringify(DATA));
+      renderizar();
+      document.getElementById("sync-status").textContent = "Sincronizado";
+    } else {
+      alert("Error: " + res.message);
+    }
+  }
+
+  function registrarCompra() {
+    const cod = document.getElementById("c-cod").value.trim();
+    const desc = document.getElementById("c-desc").value.trim();
+    const costo = document.getElementById("c-costo").value;
+    if (!cod || !desc || !costo) return alert("Completá código, descripción y costo");
+    ejecutarAccion({
+      accion: "compra_mercaderia",
+      fecha: document.getElementById("c-fecha").value,
+      codigo: cod,
+      descripcion: desc,
+      cantidad: document.getElementById("c-cant").value,
+      costo_unitario: costo,
+      precio_venta: document.getElementById("c-pventa").value || 0,
+      condicion: document.getElementById("c-cond").value,
+      medio_pago: document.getElementById("c-medio").value,
+      proveedor: document.getElementById("c-prov").value || "Proveedor General"
+    });
+  }
+
+  function registrarVenta() {
+    const cod = document.getElementById("v-prod").value;
+    const precio = document.getElementById("v-precio").value;
+    if (!cod || !precio) return alert("Seleccioná un producto e ingresá el precio");
+    ejecutarAccion({
+      accion: "venta_mercaderia",
+      fecha: document.getElementById("v-fecha").value,
+      codigo: cod,
+      cantidad: document.getElementById("v-cant").value,
+      precio_unitario: precio,
+      condicion: document.getElementById("v-cond").value,
+      medio_cobro: document.getElementById("v-medio").value,
+      cliente: document.getElementById("v-cliente").value || "Consumidor Final"
+    });
+  }
+
+  function registrarServicio() {
+    const monto = document.getElementById("s-monto").value;
+    if (!monto) return alert("Ingresá el monto del servicio");
+    ejecutarAccion({
+      accion: "servicio_tecnico",
+      fecha: document.getElementById("s-fecha").value,
+      detalle: document.getElementById("s-det").value,
+      cliente: document.getElementById("s-cli").value || "Cliente Taller",
+      monto: monto,
+      condicion: document.getElementById("s-cond").value,
+      medio_cobro: document.getElementById("s-medio").value
+    });
+  }
+
+  function registrarGastoRetiroCapital() {
+    const tipo = document.getElementById("g-tipo").value;
+    const monto = document.getElementById("g-monto").value;
+    if (!monto) return alert("Ingresá el monto");
+    if (tipo === "Aporte") {
+      ejecutarAccion({
+        accion: "aporte_capital",
+        fecha: document.getElementById("g-fecha").value,
+        cuenta_destino: document.getElementById("g-medio").value,
+        concepto: document.getElementById("g-det").value,
+        monto: monto
+      });
+    } else {
+      ejecutarAccion({
+        accion: "gasto_retiro",
+        fecha: document.getElementById("g-fecha").value,
+        tipo_operacion: tipo,
+        medio_pago: document.getElementById("g-medio").value,
+        detalle: document.getElementById("g-det").value,
+        monto: monto
+      });
+    }
+  }
+
+  function registrarCobroCliente() {
+    const cli = document.getElementById("cob-cliente").value;
+    const monto = document.getElementById("cob-monto").value;
+    if (!cli || !monto) return alert("Seleccioná cliente y monto");
+    ejecutarAccion({ accion: "cobro_cliente", fecha: hoy, cliente: cli, monto, medio_cobro: document.getElementById("cob-medio").value });
+  }
+
+  function registrarPagoProveedor() {
+    const prov = document.getElementById("pag-prov").value;
+    const monto = document.getElementById("pag-monto").value;
+    if (!prov || !monto) return alert("Seleccioná proveedor y monto");
+    ejecutarAccion({ accion: "pago_proveedor", fecha: hoy, proveedor: prov, monto, medio_pago: document.getElementById("pag-medio").value });
+  }
+</script>
+</body>
+</html>
