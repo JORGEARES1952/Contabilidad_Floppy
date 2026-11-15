@@ -42,7 +42,7 @@
     header h1 { font-size: 1.2rem; }
     .badge-sync { background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; }
 
-    .container { max-width: 1240px; margin: 18px auto; padding: 0 14px; }
+    .container { max-width: 1280px; margin: 18px auto; padding: 0 14px; }
     .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
     .tab-btn {
       padding: 10px 14px; border: 1px solid var(--border); background: white; border-radius: 10px;
@@ -61,7 +61,7 @@
     .card h3 { font-size: 1rem; color: var(--primary); margin-bottom: 12px; }
     .kpi-val { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
 
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; margin-bottom: 14px; }
     .form-group { display: flex; flex-direction: column; gap: 5px; }
     label { font-size: 0.78rem; font-weight: 700; color: var(--muted); }
     input, select, textarea { padding: 9px 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: white; width: 100%; }
@@ -71,16 +71,15 @@
     button.btn-sm { padding: 5px 10px; font-size: 0.78rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
 
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-    th, td { padding: 9px 8px; border-bottom: 1px solid var(--border); text-align: left; }
-    th { background: #f8fafc; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    th, td { padding: 8px 7px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { background: #f8fafc; color: var(--muted); font-size: 0.73rem; text-transform: uppercase; white-space: nowrap; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
     .badge { padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700; }
     .bg-ok { background: #dcfce7; color: #166534; }
     .bg-low { background: #fee2e2; color: #991b1b; }
     .bg-pend { background: #fef3c7; color: #92400e; }
 
-    /* Hoja Imprimible Remito / Presupuesto */
     .doc-preview {
       background: white; border: 2px solid #cbd5e1; border-radius: 10px; padding: 28px;
       max-width: 820px; margin: 0 auto; color: #0f172a;
@@ -189,13 +188,18 @@
         <h3>Registrar Compra de Mercadería</h3>
         <div class="form-grid">
           <div class="form-group"><label>Fecha</label><input type="date" id="c-fecha"></div>
-          <div class="form-group"><label>Código Interno</label><input type="text" id="c-cod" placeholder="Ej: SSD-480"></div>
-          <div class="form-group"><label>Código de Barras (Opcional)</label><input type="text" id="c-barra" placeholder="Lector / EAN-13"></div>
-          <div class="form-group"><label>Descripción Artículo</label><input type="text" id="c-desc" placeholder="Ej: Disco SSD Kingston 480GB"></div>
-          <div class="form-group"><label>N.º de Serie (Opcional - Garantía)</label><input type="text" id="c-serie" placeholder="Ej: SN-9845120"></div>
+          <div class="form-group"><label>Código Artículo</label><input type="text" id="c-cod" placeholder="Ej: SSD-512"></div>
+          <div class="form-group"><label>Descripción</label><input type="text" id="c-desc" placeholder="Ej: Disco SSD"></div>
+          <div class="form-group"><label>Capacidad</label><input type="text" id="c-cap" placeholder="Ej: 512GB / 8GB"></div>
+          <div class="form-group"><label>Marca</label><input type="text" id="c-marca" placeholder="Ej: Kingston / ADATA"></div>
+          <div class="form-group"><label>Modelo</label><input type="text" id="c-modelo" placeholder="Ej: SU-650 / A400"></div>
+          <div class="form-group"><label>Categoría</label><input type="text" id="c-cat" value="Hardware" placeholder="Almacenamiento / Periféricos"></div>
           <div class="form-group"><label>Cantidad</label><input type="number" id="c-cant" value="1" min="1"></div>
           <div class="form-group"><label>Costo Unitario ($)</label><input type="number" id="c-costo"></div>
-          <div class="form-group"><label>Precio Venta Sugerido ($)</label><input type="number" id="c-pventa"></div>
+          <div class="form-group"><label>Precio Venta ($)</label><input type="number" id="c-pventa"></div>
+          <div class="form-group"><label>Stock Mínimo</label><input type="number" id="c-smin" value="1" min="0"></div>
+          <div class="form-group"><label>Código de Barras (Opcional)</label><input type="text" id="c-barra" placeholder="EAN-13"></div>
+          <div class="form-group"><label>N.º de Serie (Opcional - Garantía)</label><input type="text" id="c-serie" placeholder="SN-..."></div>
           <div class="form-group">
             <label>Condición de Compra</label>
             <select id="c-cond" onchange="togglePagoCompra()">
@@ -324,7 +328,7 @@
         <div class="form-grid" style="margin-bottom:8px;">
           <div class="form-group"><label>Buscar en Stock (Opcional)</label><select id="doc-prod-sel" onchange="cargarItemStockDoc()"></select></div>
           <div class="form-group"><label>Cantidad</label><input type="number" id="doc-item-cant" value="1" min="1"></div>
-          <div class="form-group"><label>Descripción del Producto o Servicio</label><input type="text" id="doc-item-desc" placeholder="Ej: SSD 480GB + Instalación Windows"></div>
+          <div class="form-group"><label>Descripción del Producto o Servicio</label><input type="text" id="doc-item-desc" placeholder="Ej: SSD ADATA SU-650 512GB"></div>
           <div class="form-group"><label>N.º Serie / Garantía (Opcional)</label><input type="text" id="doc-item-serie" placeholder="Ej: S/N 9845120 - Garantía 6 meses"></div>
           <div class="form-group"><label>Precio Unitario ($)</label><input type="number" id="doc-item-precio" placeholder="0"></div>
         </div>
@@ -333,7 +337,6 @@
         <button class="btn-success" style="float:right;" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
       </div>
 
-      <!-- VISTA PREVIA IMPRIMIBLE -->
       <div id="area-impresion" class="doc-preview">
         <div class="doc-header">
           <div>
@@ -388,10 +391,25 @@
   <!-- TAB 5: STOCK, SERIALES Y CREACIÓN DE BANCOS -->
   <div id="tab-stock" class="section">
     <div class="card">
-      <h3>Inventario Permanente de Mercaderías (Código de Barras y N.º de Serie)</h3>
+      <h3>Inventario Permanente de Mercaderías</h3>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Código</th><th>Cód. Barras</th><th>Descripción</th><th>N.º Serie / Garantía</th><th class="num">Costo Unit.</th><th class="num">Precio Venta</th><th class="num">Stock</th><th class="num">Valuación</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descripción</th>
+              <th>Capacidad</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Categoría</th>
+              <th class="num">Costo Unit.</th>
+              <th class="num">Precio Venta</th>
+              <th class="num">Stock</th>
+              <th class="num">Mín.</th>
+              <th>Cód. Barra / Serie</th>
+              <th class="num">Valuación</th>
+            </tr>
+          </thead>
           <tbody id="tabla-stock"></tbody>
         </table>
       </div>
@@ -472,7 +490,7 @@
 
   if (PIN) {
     document.getElementById("pin-input").value = PIN;
-    const cache = localStorage.getItem("floppy_contab_cache_v2");
+    const cache = localStorage.getItem("floppy_contab_cache_v3");
     if (cache) {
       DATA = JSON.parse(cache);
       document.getElementById("login-screen").style.display = "none";
@@ -524,7 +542,7 @@
       if (res.status === "ok") {
         localStorage.setItem("floppy_contab_pin", PIN);
         DATA = res;
-        localStorage.setItem("floppy_contab_cache_v2", JSON.stringify(DATA));
+        localStorage.setItem("floppy_contab_cache_v3", JSON.stringify(DATA));
         document.getElementById("login-screen").style.display = "none";
         renderizar();
         document.getElementById("sync-status").textContent = "Sincronizado";
@@ -553,8 +571,7 @@
   }
 
   function renderizar() {
-    // Poblar selects dinámicos de cuentas líquidas (Caja + Bancos creados)
-    const cuentasLiquidas = DATA.plan.filter(c => String(c.Codigo).startsWith("1.1.") && c.Codigo !== "1.1.04" && c.Codigo !== "1.1.05" && c.Codigo !== "1.1.06");
+    const cuentasLiquidas = DATA.plan.filter(c => String(c.Codigo).startsWith("1.1.") && !["1.1.04", "1.1.05", "1.1.06"].includes(String(c.Codigo)));
     const opcionesCuentas = cuentasLiquidas.map(c => `<option value="${c.Codigo}|${c.Cuenta}">${c.Cuenta}</option>`).join("");
     document.querySelectorAll(".select-cuentas-liquidas").forEach(sel => {
       const prev = sel.value;
@@ -608,21 +625,34 @@
       .map(c => `<tr><td>${c.Codigo}</td><td>${c.Cuenta} <span style="color:var(--muted);font-size:0.75rem;">(${c.Rubro})</span></td><td class="num"><b>${fmt(c.saldo)}</b></td></tr>`)
       .join("");
 
-    // Stock
-    document.getElementById("tabla-stock").innerHTML = DATA.stock.map(s => `
-      <tr>
-        <td><b>${s.Codigo}</b></td>
-        <td>${s.Codigo_Barra || '-'}</td>
-        <td>${s.Descripcion}</td>
-        <td style="font-size:0.8rem;color:var(--muted);">${s.Numero_Serie || '-'}</td>
-        <td class="num">${fmt(s.Costo_Unitario)}</td>
-        <td class="num">${fmt(s.Precio_Venta)}</td>
-        <td class="num"><span class="badge ${Number(s.Stock_Actual) <= Number(s.Stock_Minimo) ? 'bg-low' : 'bg-ok'}">${s.Stock_Actual}</span></td>
-        <td class="num"><b>${fmt(Number(s.Costo_Unitario) * Number(s.Stock_Actual))}</b></td>
-      </tr>
-    `).join("") || `<tr><td colspan="8" style="text-align:center;color:var(--muted);">Sin mercaderías cargadas aún</td></tr>`;
+    // Stock con tus 10 columnas exactas + extras opcionales
+    document.getElementById("tabla-stock").innerHTML = DATA.stock.map(s => {
+      const stk = Number(s.Stock_Actual || 0);
+      const min = Number(s.Stock_Minimo || 0);
+      const costo = Number(s.Costo_Unitario || 0);
+      const extras = [s.Codigo_Barra ? "EAN: " + s.Codigo_Barra : "", s.Numero_Serie ? "S/N: " + s.Numero_Serie : ""].filter(Boolean).join(" | ");
+      return `
+        <tr>
+          <td><b>${s.Codigo}</b></td>
+          <td>${s.Descripcion}</td>
+          <td>${s.Capacidad || '-'}</td>
+          <td>${s.Marca || '-'}</td>
+          <td>${s.Modelo || '-'}</td>
+          <td>${s.Categoria || '-'}</td>
+          <td class="num">${fmt(costo)}</td>
+          <td class="num">${fmt(s.Precio_Venta)}</td>
+          <td class="num"><span class="badge ${stk <= min ? 'bg-low' : 'bg-ok'}">${stk}</span></td>
+          <td class="num">${min}</td>
+          <td style="font-size:0.78rem;color:var(--muted);">${extras || '-'}</td>
+          <td class="num"><b>${fmt(costo * stk)}</b></td>
+        </tr>
+      `;
+    }).join("") || `<tr><td colspan="12" style="text-align:center;color:var(--muted);">Sin mercaderías cargadas aún</td></tr>`;
 
-    const optsStock = DATA.stock.map(s => `<option value="${s.Codigo}">${s.Codigo} - ${s.Descripcion} (Stock: ${s.Stock_Actual})</option>`).join("");
+    const optsStock = DATA.stock.map(s => {
+      const etiqueta = [s.Codigo, s.Descripcion, s.Marca, s.Modelo, s.Capacidad].filter(Boolean).join(" ");
+      return `<option value="${s.Codigo}">${etiqueta} (Stock: ${s.Stock_Actual})</option>`;
+    }).join("");
     document.getElementById("v-prod").innerHTML = optsStock;
     document.getElementById("doc-prod-sel").innerHTML = `<option value="">-- Seleccionar de Stock o escribir manual --</option>` + optsStock;
     completarPrecioVenta();
@@ -669,7 +699,7 @@
     const res = await api(params);
     if (res.status === "ok") {
       DATA = res;
-      localStorage.setItem("floppy_contab_cache_v2", JSON.stringify(DATA));
+      localStorage.setItem("floppy_contab_cache_v3", JSON.stringify(DATA));
       renderizar();
       document.getElementById("sync-status").textContent = "Sincronizado";
     } else {
@@ -694,23 +724,29 @@
     const cod = document.getElementById("c-cod").value.trim();
     const desc = document.getElementById("c-desc").value.trim();
     const costo = document.getElementById("c-costo").value;
-    if (!cod || !desc || !costo) return alert("Completá código interno, descripción y costo");
+    if (!cod || !desc || !costo) return alert("Completá código, descripción y costo");
     ejecutarAccion({
       accion: "compra_mercaderia",
       fecha: document.getElementById("c-fecha").value,
       codigo: cod,
-      codigo_barra: document.getElementById("c-barra").value.trim(),
-      numero_serie: document.getElementById("c-serie").value.trim(),
       descripcion: desc,
+      capacidad: document.getElementById("c-cap").value.trim(),
+      marca: document.getElementById("c-marca").value.trim(),
+      modelo: document.getElementById("c-modelo").value.trim(),
+      categoria: document.getElementById("c-cat").value.trim() || "Hardware",
       cantidad: document.getElementById("c-cant").value,
       costo_unitario: costo,
       precio_venta: document.getElementById("c-pventa").value || 0,
+      stock_minimo: document.getElementById("c-smin").value || 1,
+      codigo_barra: document.getElementById("c-barra").value.trim(),
+      numero_serie: document.getElementById("c-serie").value.trim(),
       condicion: document.getElementById("c-cond").value,
       medio_pago: document.getElementById("c-medio").value,
       proveedor: document.getElementById("c-prov").value || "Proveedor General"
     });
-    document.getElementById("c-barra").value = "";
-    document.getElementById("c-serie").value = "";
+    ["c-cod", "c-desc", "c-cap", "c-marca", "c-modelo", "c-costo", "c-pventa", "c-barra", "c-serie"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
   }
 
   function registrarVenta() {
@@ -811,12 +847,11 @@
     ejecutarAccion({ accion: "pago_proveedor", fecha: hoy, proveedor: prov, monto, medio_pago: document.getElementById("pag-medio").value });
   }
 
-  // Funciones de Remitos y Presupuestos
   function cargarItemStockDoc() {
     const cod = document.getElementById("doc-prod-sel").value;
     const item = DATA.stock.find(s => s.Codigo === cod);
     if (item) {
-      document.getElementById("doc-item-desc").value = item.Descripcion;
+      document.getElementById("doc-item-desc").value = [item.Descripcion, item.Marca, item.Modelo, item.Capacidad].filter(Boolean).join(" ");
       document.getElementById("doc-item-precio").value = item.Precio_Venta || 0;
       document.getElementById("doc-item-serie").value = item.Numero_Serie ? "S/N: " + item.Numero_Serie : "";
     }
